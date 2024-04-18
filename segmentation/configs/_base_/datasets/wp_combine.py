@@ -1,20 +1,23 @@
 # dataset settings
-dataset_type = 'ADE20KDataset'
-data_root = '/root/autodl-tmp/project/InternImage/segmentation/data/ade/ADEChallengeData2016'
+dataset_type = 'WeatherProofDataset'
+data_root = '/root/autodl-tmp/project/InternImage/segmentation/data/WeatherProof/WeatherProof_combine'
 img_norm_cfg = dict(
-    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
-crop_size = (512, 512)
+    mean=[103.336, 104.443, 100.035], 
+    std=[39.329, 38.147, 42.803], 
+    to_rgb=True)
+crop_size = (224, 224)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
+    dict(type='LoadRealImageFromFile'),
     dict(type='LoadAnnotations', reduce_zero_label=True),
-    dict(type='Resize', img_scale=(2048, 512), ratio_range=(0.5, 2.0)),
-    dict(type='RandomCrop', crop_size=crop_size, cat_max_ratio=0.75),
-    dict(type='RandomFlip', prob=0.5),
-    dict(type='PhotoMetricDistortion'),
-    dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size=crop_size, pad_val=0, seg_pad_val=255),
-    dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_semantic_seg']),
+    dict(type='My_Resize', img_scale=(2048, 512), ratio_range=(0.5, 2.0)),
+    dict(type='My_RandomCrop', crop_size=crop_size, cat_max_ratio=0.75),
+    dict(type='My_RandomFlip', prob=0.5),
+    dict(type='My_PhotoMetricDistortion'),
+    dict(type='My_Normalize', **img_norm_cfg),
+    dict(type='My_Pad', size=crop_size, pad_val=0, seg_pad_val=255),
+    dict(type='My_DefaultFormatBundle'),
+    dict(type='My_Collect', keys=['img', 'real_img', 'gt_semantic_seg']),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -37,18 +40,19 @@ data = dict(
     train=dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='images/training',
-        ann_dir='annotations/training',
+        img_dir='images/train',
+        real_img_dir='real_images/train',
+        ann_dir='annotations/train',
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='images/validation',
-        ann_dir='annotations/validation',
+        img_dir='images/val',
+        ann_dir='annotations/val',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='images/validation',
-        ann_dir='annotations/validation',
+        img_dir='images/val',
+        ann_dir='annotations/val',
         pipeline=test_pipeline))

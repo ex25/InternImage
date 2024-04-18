@@ -697,13 +697,61 @@ class InternImage(nn.Module):
         if isinstance(m, getattr(dcnv3, self.core_op)):
             m._reset_parameters()
 
-    def forward(self, x):
-        x = self.patch_embed(x)
+#     def forward(self, x):
+#         x = self.patch_embed(x)
+#         x = self.pos_drop(x)
+
+#         seq_out = []
+#         for level_idx, level in enumerate(self.levels):
+#             x, x_ = level(x, return_wo_downsample=True)
+#             if level_idx in self.out_indices:
+#                 seq_out.append(x_.permute(0, 3, 1, 2).contiguous())
+#         return seq_out
+
+    def forward(self, img, real_img=None):
+        x = self.patch_embed(img)
         x = self.pos_drop(x)
 
-        seq_out = []
+        img_seq_out = []
         for level_idx, level in enumerate(self.levels):
             x, x_ = level(x, return_wo_downsample=True)
             if level_idx in self.out_indices:
-                seq_out.append(x_.permute(0, 3, 1, 2).contiguous())
-        return seq_out
+                img_seq_out.append(x_.permute(0, 3, 1, 2).contiguous())
+        
+        if real_img is None:
+            return img_seq_out
+                
+        y = self.patch_embed(real_img) 
+        y = self.pos_drop(y)
+    
+        real_img_seq_out = []
+        for level_idx, level in enumerate(self.levels):
+            y, y_ = level(y, return_wo_downsample=True)
+            if level_idx in self.out_indices:
+                real_img_seq_out.append(y_.permute(0, 3, 1, 2).contiguous())
+
+        return img_seq_out, real_img_seq_out
+
+    
+if __name__ == "__main__":
+    import sys
+    sys.path.append("/root/autodl-tmp/project/InternImage/segmentation")
+    model = InternImage(
+        core_op='DCNv3',
+        channels=160,
+        depths=[5, 5, 22, 5],
+        groups=[10, 20, 40, 80],
+        mlp_ratio=4.,
+        drop_path_rate=0.4,
+        norm_layer='LN',
+        layer_scale=1.0,
+        offset_scale=2.0,
+        post_norm=True,
+        with_cp=False,
+        out_indices=(0, 1, 2, 3)).cuda()
+    
+    x = torch.Tensor(2, 3, 256, 256).cuda()
+    y = model(x)
+    print(len(y))
+    for i in range(len(y)):
+        print(y[i].shape)

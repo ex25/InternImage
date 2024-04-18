@@ -9,9 +9,11 @@ import copy
 import os
 import os.path as osp
 import time
+import random
 import warnings
 
 import mmcv
+import numpy as np
 import torch
 import torch.distributed as dist
 from mmcv.cnn.utils import revert_sync_batchnorm
@@ -26,6 +28,21 @@ from mmseg.utils import (collect_env, get_device, get_root_logger,
                          setup_multi_processes)
 import mmcv_custom  # noqa: F401,F403
 import mmseg_custom  # noqa: F401,F403
+
+
+def setup_seed(seed=3407):
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    
+    np.random.seed(seed)
+    random.seed(seed)
+    
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.enabled = False
 
 
 def parse_args():
@@ -114,6 +131,7 @@ def parse_args():
 
 
 def main():
+    setup_seed()
     args = parse_args()
 
     cfg = Config.fromfile(args.config)
@@ -245,4 +263,5 @@ def main():
 
 
 if __name__ == '__main__':
+    setup_seed()
     main()

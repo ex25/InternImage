@@ -6,3 +6,8 @@ classification/convertor/
 segmentation/convertor/
 checkpoint_dir/
 demo/
+segmentation/data/
+.png
+.ipynb_checkpoints/
+work_dirs/
+ops_dcnv3/

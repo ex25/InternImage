@@ -3,6 +3,7 @@
 CONFIG=$1
 GPUS=$2
 PORT=${PORT:-29300}
+LOG_FILE="train_output.txt"
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python -m torch.distributed.launch --nproc_per_node=$GPUS --master_port=$PORT \
